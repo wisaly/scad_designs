@@ -1,3 +1,7 @@
+/* stamp box for shiky's marriage
+ * 
+ * bouding size 290 * 170 * 100
+ */
 biL = 270;      // box inner length
 biW = 150;      // box inner width
 biH = 100;      // box inner height
@@ -9,12 +13,12 @@ objB = 5;       // object bare height
 bt = 10;        // bt thickness
 trW=5;          // track with
 drH=15;         // dark room height
-drW=40;         // dark room width
+drW=50;         // dark room width
 drOY=20;        // dark room offset
-drcL=100;       // dark room cap length
+drcL=85;       // dark room cap length
 ubOX=10;        // union bar offset x
 ubOY=10;        // union bar offset y
-ubW=10;         // union bar width
+ubW=15;         // union bar width
 ubH=55;         // union bar height
 lkD=70;         // locker diameter(large side)
 lkaD=30;        // locker axis diameter
@@ -59,7 +63,38 @@ module lock2slot(h=bt){
     rotate([0,0,-20]) translate([-5,15,0]) cube([bt,20,h]);
 }
 
+module lockerslot(){
+    w=sqrt(lkaD*lkaD/2);
+    translate([0,0,bt/2]) cube([w,w,bt],true);
+}
+module lockerl(){
+    difference(){
+        cylinder(d=lkD,h=bt);
+        // lock1
+        translate([-lkD/2,-lkD/2,0]) cube([bt,lkD,20]);
+        // lock2
+        rotate(180,0,0) lock2slot();
+        // positioner
+        lock2slot(2);
+    }
+    difference(){
+        translate([0,0,bt]) cylinder(d=50,h=bt);
+        translate([0,0,bt]) lockerslot();
+    }
+}
+module lockerr(){
+    translate([0,0,-bt]) lockerslot();
+    translate([0,0,0]) cylinder(d=lkaD,h=bt);
+    translate([0,0,bt]) cylinder(d=50,h=bt);
+}
 module locker(){
+    color("lightgreen") rotate([0,90,0]){
+        lockerl();
+        translate([0,0,bt*2+20]) lockerr();
+    }
+}
+
+module lockero(){
     color("lightgreen") rotate([0,90,0]){
         difference(){
             cylinder(d=lkD,h=bt);
@@ -95,14 +130,68 @@ module layer1(){
     translate([0,biW,0])  cube([biL,trW,l1tH]);
 }
 
+module layer2slot(){
+    translate([0,30,15])     cube([10,20,10]);
+    translate([0,biW-50,15]) cube([10,20,10]);
+}
+module layer2l(){
+    mirror([0,0,1]) union(){
+        difference(){
+            cube([drcL,biW,l2H]);
+            // inkpad hole
+            ipOX = ipD/2+10;
+            ipOY = (biW - ipD) / 2;
+            translate([ipOX,ipOY+ipD/2,0]) cylinder(d=ipD,h=ipH-objB);
+            // union bar hole
+            ubhW=l2L-ubOX*2;
+            translate([ubOX,ubOY,0]) cube([ubhW,ubW,drcL]);
+            translate([ubOX,biW-ubOY-ubW,0]) cube([ubhW,ubW,drcL]);
+            // slot
+            translate([drcL-10,0,0]) layer2slot();
+        }
+    }
+    // tenon
+    tOZ=20;
+    translate([-trW,0,-tOZ]) cube([trW,biW,l2tH]);
+    //translate([0,-trW,-tOZ]) cube([bt,trW,l2tH]);
+    //translate([0,biW,-tOZ]) cube([lbt,trW,l2tH]);
+}
+
+module layer2r(){
+    mirror([0,0,1]) union(){
+        difference(){
+            cube([l2L-drcL,biW,l2H]);
+            // stamp hole
+            sOX = 10;  // 20 between inkpad and stamp
+            sOY = (biW-stampW*2-20)/2; // 20 between two stamps
+            translate([sOX,sOY,0]) stampHole();
+            translate([sOX,biW-sOY-stampW,0]) stampHole();
+            // union bar hole
+            ubhW=l2L-ubOX-drcL;
+            translate([0,ubOY,0]) cube([ubhW,ubW,l2H]);
+            translate([0,biW-ubOY-ubW,0]) cube([ubhW,ubW,l2H]);
+        }
+        translate([-10,0,0]) layer2slot();
+    }
+    // tenon
+    tOZ=20;
+    translate([0,-trW,-tOZ]) cube([l2L-drcL,trW,l2tH]);
+    translate([0,biW,-tOZ]) cube([l2L-drcL,trW,l2tH]);
+    // lock tenon
+    color("green") translate([l2L-drcL,75,-5]) rotate([0,90,0]) lock2slot();
+}
+
 module layer2(){
-    
+    layer2l();
+    translate([drcL,0,0]) layer2r();
+}
+module layer2o(){
     // layer plane, base below (xy)
     mirror([0,0,1]) union(){
         difference(){
             cube([l2L,biW,l2H]);
             // inkpad hole
-            ipOX = ipD/2+20;
+            ipOX = ipD/2+10;
             ipOY = (biW - ipD) / 2;
             translate([ipOX,ipOY+ipD/2,0]) cylinder(d=ipD,h=ipH-objB);
             // stamp hole
@@ -137,6 +226,7 @@ module layer3(){
             translate([sO,biW,0]) rotate([90,0,0]) linear_extrude(biW) polygon([[0,0],[sW,0],[sW,sH]]);
             translate([sO+sW,0,0]) cube([l3L-sW-sO,biW,sH]);
             
+            //translate([0,50]) cube([l3L,30,l3H]);
             // dark room
             translate([0,drOY,l3H-drH]) cube([drW,biW-drOY*2,drH]);
         }
@@ -175,28 +265,29 @@ module layerB(){
         cube([biL,bt,biH]);
         l3sH=5;    // layer 3 slot space height
         translate([0,0,bt])             cube([biL,trW,l3tH+l3sH]);
-        translate([0,0,l4H+l3H+l3sH+l2H-l2tOZ])    cube([biL,trW,l2tH]);
+        translate([drcL,0,l4H+l3H+l3sH+l2H-l2tOZ])    cube([biL-drcL,trW,l2tH]);
         translate([0,0,biH-l1tOZ-l1tH]) cube([biL,trW,l1tH]);
     }
 }
 
 module layerL(){
-    difference(){
-        cube([bt,biW,biH]);
+    translate([0,0,bt]) difference(){
+        cube([bt,biW,biH-bt]);
         l3sH=5;    // layer 3 slot space height
-        translate([trW,0,l4H+l3H+l3sH+l2H-l2tOZ]) cube([trW,biW,l2tH]);
+        translate([trW,0,l4H+l3H+l3sH+l2H-l2tOZ-bt]) cube([trW,biW,l2tH]);
     }
 }
 
 module layerR(){
-    difference(){
-        cube([bt,biW,biH-bt]);
-        translate([0,biW/2,biH-bt-l1tH-lksD/2]) rotate([0,90,0]) cylinder(d=lkaD,h=bt);
+    translate([0,0,bt]) difference(){
+        cube([bt,biW,biH-bt*2]);
+        translate([0,biW/2,biH-bt*2-l1tH-lksD/2]) rotate([0,90,0]) cylinder(d=lkaD,h=bt+1);
     }
 }
 
 // move to end position
 //translate([190,0,310]) layer1();
+//translate([0,0,300]) layer2();
 //translate([110,0,255]) layer3();
 
 // move to stamp position
@@ -210,7 +301,8 @@ module layerR(){
 
 // split position
 translate([0,0,300]) layer1();
-translate([0,0,200]) layer2();
+translate([0,0,200]) layer2l();
+translate([drcL+2,0,200]) layer2r();
 translate([0,0,100]) layer3();
 layer4();
 %translate([0,-100,0]) layerF();
@@ -218,4 +310,4 @@ translate([0,160,0]) layerB();
 translate([-120,0,0]) layerL();
 translate([300,0,0]) layerR();
 
-translate([350,75,60]) locker();
+translate([250,75,60]) locker();
