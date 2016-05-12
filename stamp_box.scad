@@ -35,11 +35,13 @@ l2tOZ=20;       // layer 2 tenon offset z
 l2L=biL-bt*3;   // layer 2 main length
 l3L=150;        // layer 3 length
 
+// stamp hole
 module stampHole(){
     cube([stampL,stampW,stampW-objB]);
     translate([10,0,stampW-objB]) cube([stampL-20,stampW,30]);
 }
 
+// union bar
 module unionbar(h=ubH,toleft=false){
     if (!toleft){
         color("red"){
@@ -53,20 +55,24 @@ module unionbar(h=ubH,toleft=false){
     }
 }
 
-// union bar locker
+// union bar locker (triangle)
 module ublocker(toleft=false){
     translate([0,ubW,0]) rotate([-90,180,180]) linear_extrude(ubW) polygon([[0,0],[ubW,ubW],[ubW*2,ubW],[ubW*3,0]]);
 }
 
+// 2nd lock slot (2 rotate cube)
 module lock2slot(h=bt){
     rotate([0,0,20]) translate([-5,-35,0]) cube([bt,20,h]);
     rotate([0,0,-20]) translate([-5,15,0]) cube([bt,20,h]);
 }
 
+// locker connect object
 module lockerslot(){
     w=sqrt(lkaD*lkaD/2);
     translate([0,0,bt/2]) cube([w,w,bt],true);
 }
+
+// lock left part (inside)
 module lockerl(){
     difference(){
         cylinder(d=lkD,h=bt);
@@ -82,11 +88,15 @@ module lockerl(){
         translate([0,0,bt]) lockerslot();
     }
 }
+
+// locker right part (outside)
 module lockerr(){
     translate([0,0,-bt]) lockerslot();
     translate([0,0,0]) cylinder(d=lkaD,h=bt);
     translate([0,0,bt]) cylinder(d=50,h=bt);
 }
+
+// box locker
 module locker(){
     color("lightgreen") rotate([0,90,0]){
         lockerl();
@@ -94,6 +104,7 @@ module locker(){
     }
 }
 
+// locker in on module (old design)
 module lockero(){
     color("lightgreen") rotate([0,90,0]){
         difference(){
@@ -111,13 +122,14 @@ module lockero(){
     }
 }
 
+
 module layer1(){
     difference(){
         cube([biL,biW,l1H]);
         // lock slot
         translate([biL-bt*2,(biW-lkD)/2,0]) cube([bt,lkD,trW]);
         // lock slot 2
-        #translate([l2L-ubOX*2-(l3L-ubOX*2)-5,(biW-lkD)/2,0]) cube([bt,lkD,trW]);
+        translate([l2L-ubOX*2-(l3L-ubOX*2)-5,(biW-lkD)/2,0]) cube([bt,lkD,trW]);
     }
     
     // union bar pusher
@@ -129,11 +141,13 @@ module layer1(){
     translate([0,-trW,0]) cube([biL,trW,l1tH]);
     translate([0,biW,0])  cube([biL,trW,l1tH]);
 }
-
+// layer 2 connect object
 module layer2slot(){
     translate([0,30,15])     cube([10,20,10]);
     translate([0,biW-50,15]) cube([10,20,10]);
 }
+
+// layer 2 left part
 module layer2l(){
     mirror([0,0,1]) union(){
         difference(){
