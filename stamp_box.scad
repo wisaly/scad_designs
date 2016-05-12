@@ -267,6 +267,33 @@ module layer4(){
         translate([0,biW-drOY-bt,l4H]) cube([drW,bt,drH]);
         translate([drW-bt,drOY+bt,l4H]) cube([bt,biW-drOY*2-bt*2,drH]);
     }
+    
+    translate([-bt,0,0]) difference(){
+        cube([bt,biW,bt]);
+        wslot();
+    }
+    translate([biL,0,0]) difference(){
+        cube([bt,biW,bt]);
+        wslot();
+    }
+}
+
+module wslot(){
+    difference(){
+        cube([bt,biW,bt]);
+        translate([0,0,0]) cube([bt,bt*2,bt]);
+        translate([0,biW-bt*2,0]) cube([bt,bt*2,bt]);
+        translate([0,bt*6,0]) cube([bt,biW-bt*12,bt]);
+    }
+}
+
+module hslot(){
+    difference(){
+        cube([bt,bt,biH]);
+        translate([0,0,0]) cube([bt,bt,bt*2]);
+        translate([0,0,biH-bt*2]) cube([bt,bt,bt*2]);
+        translate([0,0,bt*4]) cube([bt,bt,biH-bt*8]);
+    }
 }
 
 module layerF(){
@@ -282,6 +309,8 @@ module layerB(){
         translate([drcL,0,l4H+l3H+l3sH+l2H-l2tOZ])    cube([biL-drcL,trW,l2tH]);
         translate([0,0,biH-l1tOZ-l1tH]) cube([biL,trW,l1tH]);
     }
+    translate([-bt,0,0]) hslot();
+    translate([biL,0,0]) hslot();
 }
 
 module layerL(){
@@ -290,12 +319,32 @@ module layerL(){
         l3sH=5;    // layer 3 slot space height
         translate([trW,0,l4H+l3H+l3sH+l2H-l2tOZ-bt]) cube([trW,biW,l2tH]);
     }
+    // border
+    wslot();
+    translate([0,-bt,0]) difference(){
+        cube([bt,bt,biH]);
+        hslot();
+    }
+    translate([0,biW,0]) difference(){
+        cube([bt,bt,biH]);
+        hslot();
+    }
 }
 
 module layerR(){
     translate([0,0,bt]) difference(){
         cube([bt,biW,biH-bt*2]);
         translate([0,biW/2,biH-bt*2-l1tH-lksD/2]) rotate([0,90,0]) cylinder(d=lkaD,h=bt+1);
+    }
+    
+    wslot();
+    translate([0,-bt,0]) difference(){
+        cube([bt,bt,biH]);
+        hslot();
+    }
+    translate([0,biW,0]) difference(){
+        cube([bt,bt,biH]);
+        hslot();
     }
 }
 
@@ -324,4 +373,4 @@ translate([0,160,0]) layerB();
 translate([-120,0,0]) layerL();
 translate([300,0,0]) layerR();
 
-translate([250,75,60]) locker();
+translate([350,75,60]) locker();
