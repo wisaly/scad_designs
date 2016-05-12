@@ -193,6 +193,10 @@ module layer2r(){
     translate([0,biW,-tOZ]) cube([l2L-drcL,trW,l2tH]);
     // lock tenon
     color("green") translate([l2L-drcL,75,-5]) rotate([0,90,0]) lock2slot();
+    translate([l2L-drcL,0,-l2H]) difference(){
+        cube([bt,biW,l2H]);
+        translate([0,biW/2,l2H/2+15]) rotate([0,90,0]) cylinder(d=lkD,h=bt+1);
+    }
 }
 
 module layer2(){
@@ -339,11 +343,11 @@ module layerR(){
     
     wslot();
     translate([0,-bt,0]) difference(){
-        cube([bt,bt,biH]);
+        cube([bt,bt,biH-bt]);
         hslot();
     }
     translate([0,biW,0]) difference(){
-        cube([bt,bt,biH]);
+        cube([bt,bt,biH-bt]);
         hslot();
     }
 }
@@ -373,4 +377,4 @@ translate([0,160,0]) layerB();
 translate([-120,0,0]) layerL();
 translate([300,0,0]) layerR();
 
-translate([350,75,60]) locker();
+translate([350,75,195]) locker();
