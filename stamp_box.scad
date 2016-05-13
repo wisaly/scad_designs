@@ -14,7 +14,7 @@ bt = 10;        // bt thickness
 trW=5;          // track with
 drH=15;         // dark room height
 drW=50;         // dark room width
-drOY=20;        // dark room offset
+drOY=25;        // dark room offset
 drcL=85;       // dark room cap length
 ubOX=10;        // union bar offset x
 ubOY=10;        // union bar offset y
@@ -30,8 +30,8 @@ l4H=bt;         // layer 4 height
 l1tH=l1H-trW;   // layer 1 tenon height
 l2tH=bt;        // layer 2 tenon height
 l3tH=10;        // layer 3 tenon height
-l1tOZ=trW;      // layer 1 tenon offset z
-l2tOZ=20;       // layer 2 tenon offset z
+l1tOZ=5;      // layer 1 tenon offset z
+l2tOZ=25;       // layer 2 tenon offset z
 l2L=biL-bt*3;   // layer 2 main length
 l3L=150;        // layer 3 length
 
@@ -42,16 +42,10 @@ module stampHole(){
 }
 
 // union bar
-module unionbar(h=ubH,toleft=false){
-    if (!toleft){
-        color("red"){
-            cube([ubW,ubW,h]);
-            translate([ubW+ubW,ubW,h]) rotate([-90,0,180]) linear_extrude(ubW) polygon([[0,0],[ubW,ubW],[ubW,0]]);
-        }
-    }
-    else
-    {
-        translate([ubW,ubW,0]) rotate([0,0,180]) unionbar(h,false);
+module unionbar(h,l){
+    color("red") difference(){
+        cube([l,ubW,h]);
+        translate([l-ubW,0,h-ubW]) rotate([-90,180,0]) linear_extrude(ubW) polygon([[0,0],[ubW+1,ubW+1],[l-ubW*3-1,ubW+1],[l-ubW*2,0]]);
     }
 }
 
@@ -143,8 +137,18 @@ module layer1(){
 }
 // layer 2 connect object
 module layer2slot(){
-    translate([0,30,15])     cube([10,20,10]);
-    translate([0,biW-50,15]) cube([10,20,10]);
+    // middle
+    translate([0,35,10])     cube([10,10,20]);
+    translate([0,biW-45,10]) cube([10,10,20]);
+    // side
+    //translate([10,trW,l2tH+l2tOZ]) rotate([180,90,0]) linear_extrude(10) polygon([[0,0],[l2tH,l2tH],[l2tH*2,l2tH],[l2tH*3,0]]);
+    translate([0,-trW,l2tOZ-l2tH])    cube([10,l2tH,l2tH]);
+    translate([0,biW-trW,l2tOZ-l2tH]) cube([10,l2tH,l2tH]);
+    
+    translate([5,trW,0])            cube([5,5,10]);
+    translate([5,trW,l2H-10])       cube([5,5,10]);
+    translate([5,biW-trW*2,0])      cube([5,5,10]);
+    translate([5,biW-trW*2,l2H-10]) cube([5,5,10]);
 }
 
 // layer 2 left part
@@ -165,8 +169,7 @@ module layer2l(){
         }
     }
     // tenon
-    tOZ=20;
-    translate([-trW,0,-tOZ]) cube([trW,biW,l2tH]);
+    translate([-trW,0,-l2tOZ]) cube([trW,biW,l2tH]);
     //translate([0,-trW,-tOZ]) cube([bt,trW,l2tH]);
     //translate([0,biW,-tOZ]) cube([lbt,trW,l2tH]);
 }
@@ -188,9 +191,8 @@ module layer2r(){
         translate([-10,0,0]) layer2slot();
     }
     // tenon
-    tOZ=20;
-    translate([0,-trW,-tOZ]) cube([l2L-drcL,trW,l2tH]);
-    translate([0,biW,-tOZ]) cube([l2L-drcL,trW,l2tH]);
+    translate([0,-trW,-l2tOZ]) cube([l2L-drcL,trW,l2tH]);
+    translate([0,biW,-l2tOZ]) cube([l2L-drcL,trW,l2tH]);
     // lock tenon
     color("green") translate([l2L-drcL,75,-5]) rotate([0,90,0]) lock2slot();
     translate([l2L-drcL,0,-l2H]) difference(){
@@ -235,14 +237,18 @@ module layer2o(){
 module layer3(){
     sO=40;  // slope offset
     sH=10;  // slop height
-    sW=50; // slop width
+    sW=50;  // slop width
     
     // layer plane, base below (xy)
     mirror([0,0,1]) union(){
         difference(){
             cube([l3L,biW,l3H]);
-            translate([sO,biW,0]) rotate([90,0,0]) linear_extrude(biW) polygon([[0,0],[sW,0],[sW,sH]]);
-            translate([sO+sW,0,0]) cube([l3L-sW-sO,biW,sH]);
+            translate([sO,biW-ubOY-ubW,0]) rotate([90,0,0]) linear_extrude(biW-ubOY*2-ubW*2) polygon([[0,0],[sW,0],[sW,sH]]);
+            translate([sO+sW,ubOY+ubW,0]) cube([l3L-sW-sO,biW-ubOY*2-ubW*2,sH]);
+            
+            // union bar hole
+            translate([ubOX,ubOY,         -sH]) cube([l3L-ubW*2,ubW,l3H]);
+            translate([ubOX,biW-ubOY-ubW, -sH]) cube([l3L-ubW*2,ubW,l3H]);
             
             //translate([0,50]) cube([l3L,30,l3H]);
             // dark room
@@ -250,10 +256,8 @@ module layer3(){
         }
     }
     // union bar, base on (xy)
-    translate([ubOX,ubOY,0])                  unionbar(ubH,false);
-    translate([ubOX,biW-ubOY-ubW,0])          unionbar(ubH,false);
-    translate([l3L-ubOX-ubW,ubOY,-sH])        unionbar(ubH+l3H-sH,true);
-    translate([l3L-ubOX-ubW,biW-ubOY-ubW,-sH])unionbar(ubH+l3H-sH,true);
+    translate([ubOX,ubOY,        50-sH]) unionbar(ubH,l3L-ubW*2);
+    translate([ubOX,biW-ubOY-ubW,50-sH]) unionbar(ubH,l3L-ubW*2);
     
     // tenon
     translate([0,-trW,-l3H]) cube([l3L,trW,l3tH]);
@@ -274,29 +278,47 @@ module layer4(){
     
     translate([-bt,0,0]) difference(){
         cube([bt,biW,bt]);
-        wslot();
+        yslotl();
     }
     translate([biL,0,0]) difference(){
         cube([bt,biW,bt]);
-        wslot();
+        yslotr();
     }
 }
 
-module wslot(){
+module yslotl(){
     difference(){
         cube([bt,biW,bt]);
-        translate([0,0,0]) cube([bt,bt*2,bt]);
-        translate([0,biW-bt*2,0]) cube([bt,bt*2,bt]);
-        translate([0,bt*6,0]) cube([bt,biW-bt*12,bt]);
+        translate([0,0,0]) cube([bt,25,bt]);
+        translate([0,biW-25,0]) cube([bt,25,bt]);
+        translate([0,55,0]) cube([bt,40,5]);
     }
 }
 
-module hslot(){
+module yslotr(){
+    difference(){
+        cube([bt,biW,bt]);
+        translate([0,25,0]) cube([bt,30,bt]);
+        translate([0,biW-55,0]) cube([bt,30,bt]);
+    }
+}
+
+// z axis slot for right side
+module zslotr(){
     difference(){
         cube([bt,bt,biH]);
-        translate([0,0,0]) cube([bt,bt,bt*2]);
-        translate([0,0,biH-bt*2]) cube([bt,bt,bt*2]);
-        translate([0,0,bt*4]) cube([bt,bt,biH-bt*8]);
+        translate([0,0,0]) cube([bt,bt,25]);
+        translate([0,0,50]) cube([bt,bt,10]);
+        //translate([0,0,90]) cube([bt,bt,10]);
+    }
+}
+module zslotl(){
+    difference(){
+        cube([bt,bt,biH]);
+        translate([0,0,10]) cube([bt,bt,15]);
+        translate([0,0,40]) cube([bt,bt,10]);
+        translate([0,0,60]) cube([bt,bt,10]);
+        translate([0,0,80]) cube([bt,bt,20]);
     }
 }
 
@@ -307,14 +329,16 @@ module layerF(){
 // layer back
 module layerB(){
     difference(){
-        cube([biL,bt,biH]);
+        union(){
+            cube([biL,bt,biH]);
+            translate([-bt,0,0]) zslotl();
+            translate([biL,0,0]) zslotr();
+        }
         l3sH=5;    // layer 3 slot space height
-        translate([0,0,bt])             cube([biL,trW,l3tH+l3sH]);
-        translate([drcL,0,l4H+l3H+l3sH+l2H-l2tOZ])    cube([biL-drcL,trW,l2tH]);
-        translate([0,0,biH-l1tOZ-l1tH]) cube([biL,trW,l1tH]);
+        translate([0,0,bt])                        cube([biL,trW,l3tH+l3sH]);
+        translate([drcL,0,l4H+l3H+l3sH+l2H-l2tOZ]) cube([biL-drcL,trW,l2tH]);
+        translate([-bt,0,biH-l1tOZ-l1tH])          cube([biL+bt*2,trW,l1tH]);
     }
-    translate([-bt,0,0]) hslot();
-    translate([biL,0,0]) hslot();
 }
 
 module layerL(){
@@ -324,14 +348,14 @@ module layerL(){
         translate([trW,0,l4H+l3H+l3sH+l2H-l2tOZ-bt]) cube([trW,biW,l2tH]);
     }
     // border
-    wslot();
+    yslotl();
     translate([0,-bt,0]) difference(){
         cube([bt,bt,biH]);
-        hslot();
+        zslotl();
     }
     translate([0,biW,0]) difference(){
         cube([bt,bt,biH]);
-        hslot();
+        zslotl();
     }
 }
 
@@ -341,14 +365,14 @@ module layerR(){
         translate([0,biW/2,biH-bt*2-l1tH-lksD/2]) rotate([0,90,0]) cylinder(d=lkaD,h=bt+1);
     }
     
-    wslot();
+    yslotr();
     translate([0,-bt,0]) difference(){
         cube([bt,bt,biH-bt]);
-        hslot();
+        zslotr();
     }
     translate([0,biW,0]) difference(){
         cube([bt,bt,biH-bt]);
-        hslot();
+        zslotr();
     }
 }
 
@@ -367,9 +391,9 @@ module layerR(){
 //translate([90,0,30]) layer3();
 
 // split position
-translate([0,0,300]) layer1();
-translate([0,0,200]) layer2l();
-translate([drcL+2,0,200]) layer2r();
+translate([0,0,400]) layer1();
+translate([0,0,300]) layer2l();
+translate([drcL+50,0,300]) layer2r();
 translate([0,0,100]) layer3();
 layer4();
 %translate([0,-100,0]) layerF();
