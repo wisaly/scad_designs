@@ -1,12 +1,13 @@
 /* stamp box for shiky's marriage
  * 
- * bouding size 290 * 170 * 100
+ * bouding size 350 * 170 * 100
  */
-biL = 270;      // box inner length
+biL = 330;      // box inner length
 biW = 150;      // box inner width
 biH = 100;      // box inner height
 stampL = 80;    // stamp length
 stampW = 25;    // stamp width & height
+stampPH=10;      // stamp platform height
 ipD = 65;       // inkpad diameter
 ipH = 38;       // inkpad height
 objB = 5;       // object bare height
@@ -33,12 +34,18 @@ l3tH=10;        // layer 3 tenon height
 l1tOZ=5;      // layer 1 tenon offset z
 l2tOZ=25;       // layer 2 tenon offset z
 l2L=biL-bt*3;   // layer 2 main length
-l3L=150;        // layer 3 length
+l3L=200;        // layer 3 length
 
 // stamp hole
 module stampHole(){
-    cube([stampL,stampW,stampW-objB]);
-    translate([10,0,stampW-objB]) cube([stampL-20,stampW,30]);
+    cube([stampL,stampW,stampW-objB+stampPH]);
+    translate([10,0,0]) cube([stampL-20,stampW,40]);
+}
+
+module stampPlatform(){
+    cube([stampL,stampW,stampPH]);
+    h=20;
+    translate([10,0,-h]) cube([stampL-20,stampW,h]);
 }
 
 // union bar
@@ -119,21 +126,21 @@ module lockero(){
 
 module layer1(){
     difference(){
-        cube([biL,biW,l1H]);
+        cube([biL+bt,biW,l1H]);
         // lock slot
         translate([biL-bt*2,(biW-lkD)/2,0]) cube([bt,lkD,trW]);
         // lock slot 2
-        translate([l2L-ubOX*2-(l3L-ubOX*2)-5,(biW-lkD)/2,0]) cube([bt,lkD,trW]);
+        translate([115,(biW-lkD)/2,0]) cube([bt,lkD,trW]);
     }
     
     // union bar pusher
-    ubpOX=20;
+    ubpOX=30;
     translate([ubpOX,ubOY,-ubW])         ublocker();
     translate([ubpOX,biW-ubOY-ubW,-ubW]) ublocker();
     
     // tenon
-    translate([0,-trW,0]) cube([biL,trW,l1tH]);
-    translate([0,biW,0])  cube([biL,trW,l1tH]);
+    translate([0,-trW,0]) cube([biL+bt,trW,l1tH]);
+    translate([0,biW,0])  cube([biL+bt,trW,l1tH]);
 }
 // layer 2 connect object
 module layer2slot(){
@@ -191,14 +198,14 @@ module layer2r(){
         translate([-10,0,0]) layer2slot();
     }
     // tenon
-    translate([0,-trW,-l2tOZ]) cube([l2L-drcL,trW,l2tH]);
-    translate([0,biW,-l2tOZ]) cube([l2L-drcL,trW,l2tH]);
+    translate([0,-trW,-l2tOZ]) cube([l2L-drcL+bt,trW,l2tH]);
+    translate([0,biW,-l2tOZ]) cube([l2L-drcL+bt,trW,l2tH]);
     // lock tenon
-    color("green") translate([l2L-drcL,75,-5]) rotate([0,90,0]) lock2slot();
     translate([l2L-drcL,0,-l2H]) difference(){
         cube([bt,biW,l2H]);
-        translate([0,biW/2,l2H/2+15]) rotate([0,90,0]) cylinder(d=lkD,h=bt+1);
+        translate([0,biW/2,l2H/2+5]) rotate([0,90,0]) cylinder(d=lkD,h=bt+10);
     }
+    translate([l2L-drcL,75,-15]) rotate([0,90,0]) lock2slot();
 }
 
 module layer2(){
@@ -235,9 +242,9 @@ module layer2o(){
 }
 
 module layer3(){
-    sO=40;  // slope offset
+    sO=50;  // slope offset
     sH=10;  // slop height
-    sW=50;  // slop width
+    sW=130;  // slop width
     
     // layer plane, base below (xy)
     mirror([0,0,1]) union(){
@@ -256,7 +263,7 @@ module layer3(){
         }
     }
     // union bar, base on (xy)
-    translate([ubOX,ubOY,        50-sH]) unionbar(ubH,l3L-ubW*2);
+    translate([ubOX,ubOY,        50-sH]) unionbar(ubH+bt,l3L-ubW*2);
     translate([ubOX,biW-ubOY-ubW,50-sH]) unionbar(ubH,l3L-ubW*2);
     
     // tenon
@@ -336,7 +343,7 @@ module layerB(){
         }
         l3sH=5;    // layer 3 slot space height
         translate([0,0,bt])                        cube([biL,trW,l3tH+l3sH]);
-        translate([drcL,0,l4H+l3H+l3sH+l2H-l2tOZ]) cube([biL-drcL,trW,l2tH]);
+        translate([drcL-bt,0,l4H+l3H+l3sH+l2H-l2tOZ]) cube([biL-drcL+bt,trW,l2tH]);
         translate([-bt,0,biH-l1tOZ-l1tH])          cube([biL+bt*2,trW,l1tH]);
     }
 }
@@ -391,14 +398,15 @@ module layerR(){
 //translate([90,0,30]) layer3();
 
 // split position
-translate([0,0,400]) layer1();
+translate([0,0,415]) layer1();
 translate([0,0,300]) layer2l();
-translate([drcL+50,0,300]) layer2r();
-translate([0,0,100]) layer3();
+translate([drcL+0,0,300]) layer2r();
+translate([drcL+10,40,350])stampPlatform();
+translate([0,0,105]) layer3();
 layer4();
 %translate([0,-100,0]) layerF();
 translate([0,160,0]) layerB();
 translate([-120,0,0]) layerL();
-translate([300,0,0]) layerR();
+translate([380,0,0]) layerR();
 
-translate([350,75,195]) locker();
+translate([493,75,60])rotate([180,0,0]) locker();
